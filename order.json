@@ -1,0 +1,33 @@
+{
+  "customer": {
+    "id": 1,
+    "name": "John Doe",
+    "address": "123 Main St",
+    "phoneNumber": "555-1234",
+    "type": "E",
+    "state": "A"
+  },
+  "items": [
+    {
+      "id": 1,
+      "name": "Item 1",
+      "description": "Description of item 1",
+      "price": 10.0,
+      "quantity": 2,
+      "category": "Category 1"
+    },
+    {
+      "id": 2,
+      "name": "Item 2",
+      "description": "Description of item 2",
+      "price": 20.0,
+      "quantity": 1,
+      "category": "Category 2"
+    }
+  ],
+  "truck": {
+    "id": 1,
+    "name": "truck1"
+  },
+  "totalPrice": 40.0
+}
