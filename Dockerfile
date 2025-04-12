@@ -30,6 +30,10 @@ EXPOSE 8080
 # Set JVM options for container environment
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
+# Add CORS configuration for frontend
+ENV SPRING_WEBFLUX_CORS_ALLOWED_ORIGINS="http://localhost:80,http://frontend:80"
+ENV SPRING_MVC_CORS_ALLOWED_ORIGINS="http://localhost:80,http://frontend:80"
+
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
