@@ -1,19 +1,29 @@
 package com.kotlin.orders.service
 
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.element.Table
+import com.itextpdf.layout.properties.TextAlignment
+import com.itextpdf.layout.properties.UnitValue
 import com.kotlin.orders.repository.OrderRepository
 import com.kotlin.orders.repository.TruckRepository
 import com.kotlin.orders.entity.OrderStatus
-import org.springframework.stereotype.Service
-import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.io.ByteArrayOutputStream
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
 @Service
 class DashboardService(
     private val orderRepository: OrderRepository,
     private val truckRepository: TruckRepository
 ) {
-    private val logger = LoggerFactory.getLogger(DashboardService::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(DashboardService::class.java)
 
     fun getDailyTruckSales(date: LocalDate): Map<String, Any> {
         val orders = orderRepository.findByDate(date)
@@ -167,5 +177,57 @@ class DashboardService(
                 "averageOrderValue" to 0.0
             )
         }
+    }
+
+    fun generateDailyTruckSalesPDF(date: LocalDate): ByteArray {
+        val salesData = getDailyTruckSales(date)
+        val outputStream = ByteArrayOutputStream()
+        val writer = PdfWriter(outputStream)
+        val pdf = PdfDocument(writer)
+        val document = Document(pdf)
+
+        // Add title
+        val title = Paragraph("Daily Truck Sales Report - ${date.format(DateTimeFormatter.ISO_DATE)}")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(16f)
+        document.add(title)
+        document.add(Paragraph("\n"))
+
+        // Create table
+        val table = Table(UnitValue.createPercentArray(floatArrayOf(40f, 30f, 30f)))
+            .setWidth(UnitValue.createPercentValue(100f))
+
+        // Add headers
+        table.addHeaderCell("Truck")
+        table.addHeaderCell("Orders")
+        table.addHeaderCell("Total Sales")
+
+        // Add data
+        salesData["truckSales"]?.let { truckSales ->
+            (truckSales as? Map<*, *>)?.forEach { (truckId, sales) ->
+                val salesMap = sales as? Map<*, *>
+                table.addCell("Truck $truckId")
+                table.addCell(salesMap?.get("orderCount")?.toString() ?: "0")
+                table.addCell("$${salesMap?.get("totalSales")?.toString() ?: "0.00"}")
+            }
+        }
+
+        document.add(table)
+
+        // Add summary
+        document.add(Paragraph("\n"))
+        val totalOrders = (salesData["truckSales"] as? Map<*, *>)?.values?.sumOf { 
+            ((it as? Map<*, *>)?.get("orderCount") as? Number)?.toInt() ?: 0 
+        } ?: 0
+        val totalSales = (salesData["truckSales"] as? Map<*, *>)?.values?.sumOf { 
+            ((it as? Map<*, *>)?.get("totalSales") as? Number)?.toDouble() ?: 0.0 
+        } ?: 0.0
+
+        document.add(Paragraph("Summary:"))
+        document.add(Paragraph("Total Orders: $totalOrders"))
+        document.add(Paragraph("Total Sales: $${String.format("%.2f", totalSales)}"))
+
+        document.close()
+        return outputStream.toByteArray()
     }
 } 
