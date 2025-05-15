@@ -52,3 +52,4 @@ src/main/resources/application-*.properties
 ### OS specific ###
 .DS_Store
 Thumbs.db 
+bin/main/drop-tables.sql

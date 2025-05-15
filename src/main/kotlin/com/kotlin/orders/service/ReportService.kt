@@ -66,37 +66,40 @@ class ReportService(
         )
         
         // Create table
-        val table = Table(UnitValue.createPercentArray(floatArrayOf(12f, 20f, 18f, 15f, 12f, 12f, 10f)))
+        // New table structure for order-level summary
+        val table = Table(UnitValue.createPercentArray(floatArrayOf(12f, 20f, 20f, 10f, 13f, 12f, 13f)))
             .setWidth(UnitValue.createPercentValue(100f))
         
         // Add header row
         table.addHeaderCell(Cell().add(Paragraph("Date")))
         table.addHeaderCell(Cell().add(Paragraph("Customer")))
         table.addHeaderCell(Cell().add(Paragraph("Address")))
-        table.addHeaderCell(Cell().add(Paragraph("Item")))
-        table.addHeaderCell(Cell().add(Paragraph("Quantity")))
+        table.addHeaderCell(Cell().add(Paragraph("Items (Qty)")))
+        table.addHeaderCell(Cell().add(Paragraph("Items Subtotal")))
         table.addHeaderCell(Cell().add(Paragraph("Delivery Fee")))
-        table.addHeaderCell(Cell().add(Paragraph("Total")))
+        table.addHeaderCell(Cell().add(Paragraph("Order Total")))
         
         // Add data rows
-        var totalAmount = 0.0
-        var totalOrders = orders.size
-        var totalItems = 0
+        var grandTotalAmount = 0.0
+        var totalOrdersCount = orders.size // Corrected variable name for clarity
+        var grandTotalItemsQuantity = 0
         
         orders.forEach { order ->
-            order.orderItems.forEach { item ->
-                table.addCell(Cell().add(Paragraph(order.date.format(dateFormatter))))
-                table.addCell(Cell().add(Paragraph(order.customer.name)))
-                table.addCell(Cell().add(Paragraph(order.customer.address)))
-                table.addCell(Cell().add(Paragraph(item.item.name)))
-                table.addCell(Cell().add(Paragraph(item.quantity.toString())))
-                table.addCell(Cell().add(Paragraph((order.flete ?: 0.0).toString())))
-                table.addCell(Cell().add(Paragraph(order.totalPrice.toString())))
-                
-                totalItems += item.quantity
-            }
+            val orderItemsQuantity = order.orderItems.sumOf { it.quantity }
+            val itemsSubtotal = order.totalPrice // This is already the sum of item prices * quantities
+            val deliveryFee = order.flete ?: 0.0
+            val orderTotal = itemsSubtotal + deliveryFee
+
+            table.addCell(Cell().add(Paragraph(order.date.format(dateFormatter))))
+            table.addCell(Cell().add(Paragraph(order.customer.name)))
+            table.addCell(Cell().add(Paragraph(order.customer.address)))
+            table.addCell(Cell().add(Paragraph(orderItemsQuantity.toString())))
+            table.addCell(Cell().add(Paragraph(String.format("%.2f", itemsSubtotal))))
+            table.addCell(Cell().add(Paragraph(String.format("%.2f", deliveryFee))))
+            table.addCell(Cell().add(Paragraph(String.format("%.2f", orderTotal))))
             
-            totalAmount += order.totalPrice + (order.flete ?: 0.0)
+            grandTotalItemsQuantity += orderItemsQuantity
+            grandTotalAmount += orderTotal
         }
         
         // Add summary
@@ -109,12 +112,12 @@ class ReportService(
                 .setBold()
         )
         
-        document.add(Paragraph("Total Amount: $${String.format("%.2f", totalAmount)}"))
-        document.add(Paragraph("Total Orders: $totalOrders"))
-        document.add(Paragraph("Total Items: $totalItems"))
+        document.add(Paragraph("Total Amount (incl. Delivery Fees): $${String.format("%.2f", grandTotalAmount)}"))
+        document.add(Paragraph("Total Orders: $totalOrdersCount"))
+        document.add(Paragraph("Total Items (Overall Quantity): $grandTotalItemsQuantity"))
         
-        if (totalOrders > 0) {
-            document.add(Paragraph("Average Order Value: $${String.format("%.2f", totalAmount / totalOrders)}"))
+        if (totalOrdersCount > 0) {
+            document.add(Paragraph("Average Order Value (incl. Delivery Fees): $${String.format("%.2f", grandTotalAmount / totalOrdersCount)}"))
         }
         
         // Close the document
