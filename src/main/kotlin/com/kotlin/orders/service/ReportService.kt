@@ -52,7 +52,7 @@ class ReportService(
         
         // Add title
         document.add(
-            Paragraph("Truck Delivery Report: ${truck.name}")
+            Paragraph("Reporte de Entregas del Móvil: ${truck.name}") // Changed "Truck Delivery Report" and assumes truck.name is the mobile's identifier
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontSize(18f)
         )
@@ -60,7 +60,7 @@ class ReportService(
         // Add date range
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         document.add(
-            Paragraph("Period: ${startDate.format(dateFormatter)} to ${endDate.format(dateFormatter)}")
+            Paragraph("Período: ${startDate.format(dateFormatter)} al ${endDate.format(dateFormatter)}") // Changed "Period" and "to"
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontSize(12f)
         )
@@ -71,22 +71,22 @@ class ReportService(
             .setWidth(UnitValue.createPercentValue(100f))
         
         // Add header row
-        table.addHeaderCell(Cell().add(Paragraph("Date")))
-        table.addHeaderCell(Cell().add(Paragraph("Customer")))
-        table.addHeaderCell(Cell().add(Paragraph("Address")))
-        table.addHeaderCell(Cell().add(Paragraph("Items (Qty)")))
-        table.addHeaderCell(Cell().add(Paragraph("Items Subtotal")))
-        table.addHeaderCell(Cell().add(Paragraph("Delivery Fee")))
-        table.addHeaderCell(Cell().add(Paragraph("Order Total")))
+        table.addHeaderCell(Cell().add(Paragraph("Fecha")))                // Changed "Date"
+        table.addHeaderCell(Cell().add(Paragraph("Cliente")))              // Changed "Customer"
+        table.addHeaderCell(Cell().add(Paragraph("Dirección")))            // Changed "Address"
+        table.addHeaderCell(Cell().add(Paragraph("Items (Cant)")))         // Changed "Items (Qty)"
+        table.addHeaderCell(Cell().add(Paragraph("Subtotal Items")))    // Changed "Items Subtotal"
+        table.addHeaderCell(Cell().add(Paragraph("Costo Envío")))        // Changed "Delivery Fee"
+        table.addHeaderCell(Cell().add(Paragraph("Total Pedido")))         // Changed "Order Total"
         
         // Add data rows
         var grandTotalAmount = 0.0
-        var totalOrdersCount = orders.size // Corrected variable name for clarity
+        var totalOrdersCount = orders.size
         var grandTotalItemsQuantity = 0
         
         orders.forEach { order ->
             val orderItemsQuantity = order.orderItems.sumOf { it.quantity }
-            val itemsSubtotal = order.totalPrice // This is already the sum of item prices * quantities
+            val itemsSubtotal = order.totalPrice 
             val deliveryFee = order.flete ?: 0.0
             val orderTotal = itemsSubtotal + deliveryFee
 
@@ -106,18 +106,18 @@ class ReportService(
         document.add(table)
         
         document.add(
-            Paragraph("\nSUMMARY")
+            Paragraph("\nRESUMEN") // Changed "SUMMARY"
                 .setTextAlignment(TextAlignment.LEFT)
                 .setFontSize(14f)
                 .setBold()
         )
         
-        document.add(Paragraph("Total Amount (incl. Delivery Fees): $${String.format("%.2f", grandTotalAmount)}"))
-        document.add(Paragraph("Total Orders: $totalOrdersCount"))
-        document.add(Paragraph("Total Items (Overall Quantity): $grandTotalItemsQuantity"))
+        document.add(Paragraph("Monto Total (incl. Costo Envío): $${String.format("%.2f", grandTotalAmount)}")) // Changed label
+        document.add(Paragraph("Total Pedidos: $totalOrdersCount")) // Changed label
+        document.add(Paragraph("Total Items (Cantidad General): $grandTotalItemsQuantity")) // Changed label
         
         if (totalOrdersCount > 0) {
-            document.add(Paragraph("Average Order Value (incl. Delivery Fees): $${String.format("%.2f", grandTotalAmount / totalOrdersCount)}"))
+            document.add(Paragraph("Valor Promedio Pedido (incl. Costo Envío): $${String.format("%.2f", grandTotalAmount / totalOrdersCount)}")) // Changed label
         }
         
         // Close the document
