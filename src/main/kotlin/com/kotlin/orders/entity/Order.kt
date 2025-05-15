@@ -28,6 +28,8 @@ data class Order(
 
     val totalPrice: Double,
 
+    val flete: Double? = 0.0,
+
     @Enumerated(EnumType.STRING)
     var status: OrderStatus = OrderStatus.PENDING
 ) {

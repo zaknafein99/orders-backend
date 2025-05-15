@@ -16,5 +16,6 @@ data class OrderDTO(
     val truck: TruckDTO,
     val date: LocalDate = LocalDate.now(),
     val totalPrice: Double,
+    val flete: Double = 0.0,
     val status: OrderStatus = OrderStatus.PENDING
 )

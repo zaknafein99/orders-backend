@@ -51,6 +51,7 @@ class OrderService(
             truck = truck,
             date = orderDTO.date ?: LocalDate.now(),
             totalPrice = orderDTO.items.sumOf { it.price * it.quantity },
+            flete = orderDTO.flete,
             status = orderDTO.status ?: OrderStatus.PENDING,
             orderItems = mutableListOf() // Start with empty mutable list
         )
